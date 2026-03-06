@@ -16,7 +16,7 @@ public class Log {
         LocalDateTime dataHora = LocalDateTime.now();
         DateTimeFormatter dataHoraFormatada = DateTimeFormatter.ofPattern("dd/MM/yyyy'T'HH:mm:ss.SSSSSS");
 
-        Integer qtdRelatorios = 2;
+        Integer qtdRelatorios = ThreadLocalRandom.current().nextInt(2, 6);;
         Integer tamanhoRelatorio = ThreadLocalRandom.current().nextInt(6, 13);
 
         for (int i = 1; i <= qtdRelatorios; i++) {
@@ -43,7 +43,7 @@ public class Log {
                 System.out.printf("[A#00%d] %s [SYSTEM] reading archive %s.%d.csv ERROR; Cannot read file;\n", contadorArquivo, dataHoraFormatada.format(dataHora), dataFormatada.format(data), i+1);
             }
         }
-        throw new Exception("Valor nulo, reveja esse excel");
+        throw new Exception("Valor nulo, reveja esse excel.");
     }
 }
 

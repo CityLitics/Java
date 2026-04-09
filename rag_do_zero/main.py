@@ -4,7 +4,7 @@ import requests
 
 app = FastAPI()
 
-# 🔹 1. Ler PDF
+# >> bloco de leitura do pdf << 
 def ler_pdf():
     reader = PdfReader("documento.pdf")
     texto = ""
@@ -14,11 +14,11 @@ def ler_pdf():
     
     return texto
 
-# 🔹 2. Quebrar em pedaços (chunks)
+# >> SEPARAÇÃO DOS CHUNKS , possivel definir o tamanho de saida<< 
 def dividir_texto(texto, tamanho=500):
     return [texto[i:i+tamanho] for i in range(0, len(texto), tamanho)]
 
-# 🔹 3. Buscar partes relevantes (RAG simples)
+# busca de partes importantes do doc <<<< 
 def buscar_contexto(pergunta, chunks):
     relevantes = []
 
@@ -28,23 +28,28 @@ def buscar_contexto(pergunta, chunks):
                 relevantes.append(chunk)
                 break
 
-    return " ".join(relevantes[:3])  # pega até 3 partes
+    #  >> se nada for encontrado << 
+    if not relevantes:
+        return " ".join(chunks[:3])
 
-# 🔹 4. Perguntar ao modelo
+    return " ".join(relevantes[:3])
+
+ # >>> onde é feita a pergunta <<< 
 def perguntar(pergunta):
     texto = ler_pdf()
     chunks = dividir_texto(texto)
     contexto = buscar_contexto(pergunta, chunks)
 
     prompt = f"""
-    Responda com base no contexto abaixo:
+Responda baseado no contexto abaixo.
+Se não encontrar resposta exata, faça um resumo do conteúdo.
 
-    CONTEXTO:
-    {contexto}
+CONTEXTO:
+{contexto}
 
-    PERGUNTA:
-    {pergunta}
-    """
+PERGUNTA:
+{pergunta}
+"""
 
     response = requests.post(
         "http://localhost:11434/api/generate",
@@ -57,7 +62,6 @@ def perguntar(pergunta):
 
     return response.json()["response"]
 
-# 🔹 Endpoint
 @app.get("/ask")
 def ask(question: str):
     return {"resposta": perguntar(question)}

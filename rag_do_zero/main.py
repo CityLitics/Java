@@ -6,7 +6,7 @@ app = FastAPI()
 
 # >> bloco de leitura do pdf << 
 def ler_pdf():
-    reader = PdfReader("documento.pdf")
+    reader = PdfReader("faq.pdf")
     texto = ""
     
     for page in reader.pages:
@@ -22,17 +22,36 @@ def dividir_texto(texto, tamanho=500):
 def buscar_contexto(pergunta, chunks):
     relevantes = []
 
-    for chunk in chunks:
-        for palavra in pergunta.lower().split():
-            if palavra in chunk.lower():
-                relevantes.append(chunk)
-                break
+    # stopwords
+    stopwords = ["o", "a", "de", "do", "da", "que", "se", "esse", "isso"]
 
-    #  >> se nada for encontrado << 
+    # remove palavras irrelevantes da pergunta
+    palavras_pergunta = [
+        p for p in pergunta.lower().split()
+        if p not in stopwords
+    ]
+
+    # calcula score de relevância
+    for chunk in chunks:
+        score = 0
+        chunk_lower = chunk.lower()
+
+        for palavra in palavras_pergunta:
+            if palavra in chunk_lower:
+                score += 1
+        
+        if score > 0:
+            relevantes.append((score, chunk))
+
+    # ordena pelos mais relevantes (maior score primeiro)
+    relevantes.sort(reverse=True, key=lambda x: x[0])
+
+    # fallback se nada encontrado
     if not relevantes:
         return " ".join(chunks[:3])
 
-    return " ".join(relevantes[:3])
+    # retorna os top 3 chunks mais relevantes
+    return " ".join([c[1] for c in relevantes[:3]])
 
  # >>> onde é feita a pergunta <<< 
 def perguntar(pergunta):
